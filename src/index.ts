@@ -98,7 +98,7 @@ const testApi = (async () =>
     try
     {
         const eq = await axios.post("http://localhost:3000/Discos/", {
-            "filmName": "Romantic",
+            "filmName": "Romantic Movie Yes",
             "rotationType": "CAV",
             "region": "BollyWood",
             "lenghtMinutes":200,
@@ -138,7 +138,7 @@ const testApi = (async () =>
     console.log(" 8-9. Actualización del Disco con ID 1");
     try {
         const updateResponse = await axios.put("http://localhost:3000/Discos/1", {
-            filmName: "Car movie UPDATED",
+            filmName: "Car movie UPDATED yes",
             rotationType: "CAV",
             region: "UpdatedRegion",
             lenghtMinutes: 150,
