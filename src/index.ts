@@ -32,12 +32,6 @@ const validarDisco = (datos: any, parcial = false): string | null => {
 
     const { filmName, rotationType, region, lenghtMinutes, videoFormat } = datos;
 
-    if (!parcial) {
-        if (!filmName || !rotationType || !region || lenghtMinutes === undefined || !videoFormat) {
-            return "Faltan campos obligatorios";
-        }
-    }
-
     if (filmName !== undefined && typeof filmName !== "string") return "filmName debe ser string";
     if (region !== undefined && typeof region !== "string") return "region debe ser string";
     if (rotationType !== undefined && typeof rotationType !== "string") return "rotationType debe ser string";
@@ -139,7 +133,7 @@ const testApi = (async () =>
             rotationType: "CAV",
             region: "UpdatedRegion",
             lenghtMinutes: 150,
-            videoFormat: "PAL"
+           
         });
         console.log(" Respuesta de la actualización:", updateResponse.data, "\n");
     } catch (error: any) {
