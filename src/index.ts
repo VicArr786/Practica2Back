@@ -27,27 +27,31 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const validarDisco = (datos: any): string | null => {
+const validarDisco = (datos: any, parcial = false): string | null => {
     if (!datos) return "Se esperan parámetros de entrada";
 
     const { filmName, rotationType, region, lenghtMinutes, videoFormat } = datos;
 
-    if (!filmName || !rotationType || !region || !lenghtMinutes || !videoFormat) {
-        return "Faltan campos obligatorios";
+    if (!parcial) {
+        if (!filmName || !rotationType || !region || lenghtMinutes === undefined || !videoFormat) {
+            return "Faltan campos obligatorios";
+        }
     }
 
-    if (
-        typeof filmName !== "string" ||
-        typeof region !== "string" ||
-        typeof rotationType !== "string" ||
-        typeof lenghtMinutes !== "number" ||
-        typeof videoFormat !== "string"
-    ) {
-        return "ERROR!: Formato esperado: {filmName: string, rotationType: string, region: string, lenghtMinutes: number, videoFormat: string}";
-    }
+    if (filmName !== undefined && typeof filmName !== "string") return "filmName debe ser string";
+    if (region !== undefined && typeof region !== "string") return "region debe ser string";
+    if (rotationType !== undefined && typeof rotationType !== "string") return "rotationType debe ser string";
+    if (lenghtMinutes !== undefined && typeof lenghtMinutes !== "number") return "lenghtMinutes debe ser número";
+    if (videoFormat !== undefined && typeof videoFormat !== "string") return "videoFormat debe ser string";
+
+    if (rotationType !== undefined && rotationType !== "CAV" && rotationType !== "CLV")
+        return "rotationType inválido. Debe ser 'CAV' o 'CLV'.";
+    if (videoFormat !== undefined && videoFormat !== "NTSC" && videoFormat !== "PAL")
+        return "videoFormat inválido. Debe ser 'NTSC' o 'PAL'.";
 
     return null;
 };
+
 
 
 const extraerDisco = (datos: any): LD =>
@@ -229,36 +233,33 @@ app.delete('/Discos/:id', (req: Request, res: Response) =>
 
 app.put("/Discos/:id", (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
-        const numeroId = Number(id);
+        const numeroId = Number(req.params.id);
+        if (isNaN(numeroId)) return res.status(400).json({ error: "ID inválido" });
 
-        if (isNaN(numeroId)) {
-            return res.status(400).json({ error: "ID inválido" });
-        }
+        const index = Discos.findIndex(d => d.id === numeroId);
+        if (index === -1) return res.status(404).json({ error: "Disco no encontrado" });
 
-        const index = Discos.findIndex((D) => D.id === numeroId);
-        if (index === -1) {
-            return res.status(404).json({ error: "Disco no encontrado" });
-        }
-
-        const error = validarDisco(req.body);
+        // Validate only what was sent
+        const error = validarDisco(req.body, true);
         if (error) return res.status(400).json({ error });
 
-        // merge old + new
-        Discos[index] = { ...Discos[index], ...req.body };
+        // Do not allow changing id
+        const { id, ...body } = req.body;
 
-        res.json({
-            message: "Disco cambiado correctamente",
-            disco: Discos[index],
-        });
+        // Only allow known keys
+        const allowedKeys: (keyof LD)[] = ["filmName", "rotationType", "region", "lenghtMinutes", "videoFormat"];
+        const patch: Partial<LD> = {};
+        for (const k of allowedKeys) {
+            if (body[k] !== undefined) (patch as any)[k] = body[k];
+        }
+
+        Discos[index] = { ...Discos[index], ...patch };
+
+        res.json({ message: "Disco cambiado correctamente", disco: Discos[index] });
     } catch (err: any) {
-        res.status(500).json({
-            error: "Error al actualizar el Disco",
-            detail: err.message,
-        });
+        res.status(500).json({ error: "Error al actualizar el Disco", detail: err.message });
     }
 });
-
 
 app.use((req: Request, res: Response) =>
 {
