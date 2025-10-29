@@ -27,11 +27,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-/**
- * Valida los datos de un Disco
- * @param datos - Datos del Disco a validar
- * @returns Mensaje de error si hay campos faltantes, o null si todo está bien
- */
 const validarDisco = (datos: any): string | null => {
     if (!datos) return "Se esperan parámetros de entrada";
 
@@ -53,8 +48,6 @@ const validarDisco = (datos: any): string | null => {
 
     return null;
 };
-
-
 
 
 const extraerDisco = (datos: any): LD =>
